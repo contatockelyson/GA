@@ -1,0 +1,48 @@
+{% extends 'operacoes/base.html' %}
+
+{% block title %}{{ acao }} {{ config.singular }} | Controle GA{% endblock %}
+
+{% block content %}
+<section class="page-title">
+    <div>
+        <p class="eyebrow">{{ acao }}</p>
+        <h1>{{ config.titulo }}</h1>
+    </div>
+    {% if perfil_slug %}
+        <a class="button secondary" href="{% url 'operacoes:lista_modulo_perfil' perfil_slug modulo %}">Voltar</a>
+    {% else %}
+        <a class="button secondary" href="{% url 'operacoes:lista_modulo' modulo %}">Voltar</a>
+    {% endif %}
+</section>
+
+<section class="form-panel">
+    <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="form-errors">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="form-grid">
+            {% for field in form %}
+                <label class="{% if field.field.widget.input_type == 'checkbox' %}checkbox-row{% endif %}">
+                    <span>{{ field.label }}</span>
+                    {{ field }}
+                    {% if field.errors %}
+                        <small class="field-error">{{ field.errors|striptags }}</small>
+                    {% endif %}
+                </label>
+            {% endfor %}
+        </div>
+
+        <div class="form-actions">
+            <button type="submit">Salvar</button>
+            {% if perfil_slug %}
+                <a href="{% url 'operacoes:lista_modulo_perfil' perfil_slug modulo %}">Cancelar</a>
+            {% else %}
+                <a href="{% url 'operacoes:lista_modulo' modulo %}">Cancelar</a>
+            {% endif %}
+        </div>
+    </form>
+</section>
+{% endblock %}

@@ -1,0 +1,110 @@
+{% extends 'operacoes/base.html' %}
+{% load operacoes_extras %}
+
+{% block title %}{{ config.titulo }} | Controle GA{% endblock %}
+
+{% block content %}
+<section class="page-title">
+    <div>
+        <p class="eyebrow">Registros</p>
+        <h1>{{ config.titulo }}</h1>
+    </div>
+    <div class="title-actions">
+        {% if perfil_slug %}
+            <a class="button secondary" href="{% url 'operacoes:exportar_modulo_perfil' perfil_slug modulo %}?{{ request.GET.urlencode }}">Baixar Excel</a>
+            <a class="button" href="{% url 'operacoes:criar_registro_perfil' perfil_slug modulo %}">Novo</a>
+        {% else %}
+            <a class="button secondary" href="{% url 'operacoes:exportar_modulo' modulo %}?{{ request.GET.urlencode }}">Baixar Excel</a>
+            <a class="button" href="{% url 'operacoes:criar_registro' modulo %}">Novo</a>
+        {% endif %}
+    </div>
+</section>
+
+<section class="filter-panel">
+    <form method="get">
+        <label>
+            <span>Buscar</span>
+            <input class="form-control" type="search" name="q" value="{{ filtros.q }}" placeholder="Texto, nome, codigo, motivo">
+        </label>
+
+        {% if config.dashboard_filter and not perfil_slug %}
+            <label>
+                <span>Dashboard</span>
+                <select class="form-control" name="perfil">
+                    <option value="">Todos</option>
+                    {% for slug, perfil in perfis.items %}
+                        <option value="{{ slug }}" {% if filtros.perfil == slug %}selected{% endif %}>{{ perfil.nome }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+        {% endif %}
+
+        {% if choice_options %}
+            <label>
+                <span>Tipo/Status</span>
+                <select class="form-control" name="tipo_status">
+                    <option value="">Todos</option>
+                    {% for value, label in choice_options %}
+                        <option value="{{ value }}" {% if filtros.tipo_status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+        {% endif %}
+
+        {% if config.data_field %}
+            <label>
+                <span>Data inicial</span>
+                <input class="form-control" type="date" name="data_inicio" value="{{ filtros.data_inicio }}">
+            </label>
+            <label>
+                <span>Data final</span>
+                <input class="form-control" type="date" name="data_fim" value="{{ filtros.data_fim }}">
+            </label>
+        {% endif %}
+
+        <div class="filter-actions">
+            <button type="submit">Filtrar</button>
+            {% if perfil_slug %}
+                <a href="{% url 'operacoes:lista_modulo_perfil' perfil_slug modulo %}">Limpar</a>
+            {% else %}
+                <a href="{% url 'operacoes:lista_modulo' modulo %}">Limpar</a>
+            {% endif %}
+        </div>
+    </form>
+</section>
+
+<section class="panel">
+    <table>
+        <thead>
+            <tr>
+                {% for campo in config.campos %}
+                    <th>{{ campo|cut:"_"|title }}</th>
+                {% endfor %}
+                <th>Acoes</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for objeto in objetos %}
+                <tr>
+                    {% for campo in config.campos %}
+                        <td>{{ objeto|get_attr:campo }}</td>
+                    {% endfor %}
+                    <td>
+                        {% if perfil_slug %}
+                            <a class="table-action" href="{% url 'operacoes:editar_registro_perfil' perfil_slug modulo objeto.pk %}">Editar</a>
+                            <a class="table-action danger" href="{% url 'operacoes:excluir_registro_perfil' perfil_slug modulo objeto.pk %}">Excluir</a>
+                        {% else %}
+                            <a class="table-action" href="{% url 'operacoes:editar_registro' modulo objeto.pk %}">Editar</a>
+                            <a class="table-action danger" href="{% url 'operacoes:excluir_registro' modulo objeto.pk %}">Excluir</a>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="{{ config.campos|length|add:1 }}">Nenhum registro encontrado.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}

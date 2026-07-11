@@ -1,0 +1,43 @@
+{% extends 'operacoes/base.html' %}
+
+{% block title %}Excluir {{ config.singular }} | Controle GA{% endblock %}
+
+{% block content %}
+<section class="page-title">
+    <div>
+        <p class="eyebrow">Excluir</p>
+        <h1>{{ config.titulo }}</h1>
+    </div>
+    {% if perfil_slug %}
+        <a class="button secondary" href="{% url 'operacoes:lista_modulo_perfil' perfil_slug modulo %}">Voltar</a>
+    {% else %}
+        <a class="button secondary" href="{% url 'operacoes:lista_modulo' modulo %}">Voltar</a>
+    {% endif %}
+</section>
+
+<section class="form-panel">
+    <p>Tem certeza que deseja excluir este registro?</p>
+    <p><strong>{{ objeto }}</strong></p>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-grid single">
+            <label>
+                <span>Senha para excluir</span>
+                <input class="form-control" type="password" name="senha_exclusao" autocomplete="current-password" required>
+                {% if erro_senha %}
+                    <small class="field-error">{{ erro_senha }}</small>
+                {% endif %}
+            </label>
+        </div>
+        <div class="form-actions">
+            <button class="danger-button" type="submit">Excluir</button>
+            {% if perfil_slug %}
+                <a href="{% url 'operacoes:lista_modulo_perfil' perfil_slug modulo %}">Cancelar</a>
+            {% else %}
+                <a href="{% url 'operacoes:lista_modulo' modulo %}">Cancelar</a>
+            {% endif %}
+        </div>
+    </form>
+</section>
+{% endblock %}

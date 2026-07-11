@@ -1,0 +1,261 @@
+{% extends 'operacoes/base.html' %}
+
+{% block title %}Dashboard | Controle GA{% endblock %}
+
+{% block content %}
+<section class="dashboard-tabs">
+    {% for slug, item in perfis.items %}
+        <a class="{% if slug == perfil_slug %}active{% endif %}" href="{% url 'operacoes:dashboard_perfil' slug %}">{{ item.titulo }}</a>
+    {% endfor %}
+</section>
+
+<section class="hero">
+    <div>
+        <p class="eyebrow">Operacao diaria</p>
+        <h1>{{ perfil_config.titulo }}</h1>
+        <p>Acompanhe perdas de movimentacao, seguranca, etiquetas, limpezas, perdas gerais e reunioes de GA.</p>
+    </div>
+</section>
+
+<section class="module-shortcuts">
+    {% for slug, item in dashboard_modulos.items %}
+        <a href="{% url 'operacoes:lista_modulo_perfil' perfil_slug slug %}">{{ item.titulo }}</a>
+    {% endfor %}
+</section>
+
+<section class="cards">
+    {% for card in cards %}
+        <article class="card">
+            <span>{{ card.titulo }}</span>
+            <strong>{{ card.valor }}</strong>
+            <small>{{ card.detalhe }}</small>
+        </article>
+    {% endfor %}
+</section>
+
+<section class="grid two">
+    <article class="panel">
+        <div class="panel-header">
+            <h2>Perdas de movimentacao recentes</h2>
+            <a href="{% url 'operacoes:criar_registro_perfil' perfil_slug 'movimentacoes' %}">Novo registro</a>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Operador</th>
+                    <th>Empilhadeira</th>
+                    <th>Custo</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in movimentacoes %}
+                    <tr>
+                        <td>{{ item.data_hora|date:"d/m H:i" }}</td>
+                        <td>{{ item.operador.nome|default:"-" }}</td>
+                        <td>{{ item.empilhadeira.codigo|default:"-" }}</td>
+                        <td>R$ {{ item.custo_reais }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="4">Nenhuma perda de movimentacao registrada.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </article>
+
+    <article class="panel">
+        <div class="panel-header">
+            <h2>Perdas por tipo</h2>
+            <a href="{% url 'operacoes:lista_modulo_perfil' perfil_slug 'movimentacoes' %}">Ver todos</a>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Registros</th>
+                    <th>Custo</th>
+                    <th>%</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in perdas_por_tipo %}
+                    <tr>
+                        <td>{{ item.tipo }}</td>
+                        <td>{{ item.registros }}</td>
+                        <td>{{ item.total }}</td>
+                        <td>{{ item.percentual }}%</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="4">Sem dados para consolidar.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </article>
+</section>
+
+<section class="grid three">
+    <article class="panel">
+        <div class="panel-header">
+            <h2>Perdas gerais</h2>
+            <a href="{% url 'operacoes:lista_modulo_perfil' perfil_slug 'perdas' %}">Ver todos</a>
+        </div>
+        <ul class="list">
+            <li>
+                <strong>{{ perdas_total_minutos }} minutos</strong>
+                <span>Total em tempo</span>
+            </li>
+            <li>
+                <strong>R$ {{ perdas_total_reais }}</strong>
+                <span>Total em reais</span>
+            </li>
+            {% for perda in perdas_recentes %}
+                <li>
+                    <strong>{{ perda.get_tipo_display }}</strong>
+                    <span>{{ perda.descricao }}</span>
+                </li>
+            {% empty %}
+                <li>Nenhuma perda registrada.</li>
+            {% endfor %}
+        </ul>
+    </article>
+
+    <article class="panel">
+        <div class="panel-header">
+            <h2>Etiquetas abertas e fechadas</h2>
+            <a href="{% url 'operacoes:criar_registro_perfil' perfil_slug 'etiquetas' %}">Nova</a>
+        </div>
+        <ul class="list">
+            <li>
+                <strong>{{ percentuais.etiquetas_abertas }}% abertas</strong>
+                <span>{{ percentuais.etiquetas_fechadas }}% fechadas</span>
+                <div class="meter"><span style="width: {{ percentuais.etiquetas_abertas }}%"></span></div>
+            </li>
+            {% for etiqueta in etiquetas_abertas %}
+                <li>
+                    <strong>Aberta: {{ etiqueta.numero }}</strong>
+                    <span>{{ etiqueta.descricao }}</span>
+                </li>
+            {% empty %}
+                <li>Nenhuma etiqueta aberta.</li>
+            {% endfor %}
+            {% for etiqueta in etiquetas_fechadas %}
+                <li>
+                    <strong>Fechada: {{ etiqueta.numero }}</strong>
+                    <span>{{ etiqueta.descricao }}</span>
+                </li>
+            {% empty %}
+                <li>Nenhuma etiqueta fechada.</li>
+            {% endfor %}
+        </ul>
+    </article>
+
+    <article class="panel">
+        <div class="panel-header">
+            <h2>Limpezas</h2>
+            <a href="{% url 'operacoes:criar_registro_perfil' perfil_slug 'limpezas' %}">Registrar</a>
+        </div>
+        <ul class="list">
+            <li>
+                <strong>{{ percentuais.limpeza_interna }}% limpeza interna</strong>
+                <span>{{ percentuais.limpeza_externa }}% limpeza externa</span>
+                <div class="meter"><span style="width: {{ percentuais.limpeza_interna }}%"></span></div>
+            </li>
+            {% for limpeza in limpezas_recentes %}
+                <li>
+                    <strong>{{ limpeza.empilhadeira.codigo|default:"-" }}</strong>
+                    <span>{{ limpeza.data|date:"d/m/Y" }} - {{ limpeza.responsavel.nome|default:"-" }}</span>
+                </li>
+            {% empty %}
+                <li>Nenhuma limpeza registrada.</li>
+            {% endfor %}
+        </ul>
+    </article>
+
+    <article class="panel">
+        <div class="panel-header">
+            <h2>Seguranca geral</h2>
+            <a href="{% url 'operacoes:lista_modulo_perfil' perfil_slug 'seguranca' %}">Ver todos</a>
+        </div>
+        <ul class="list">
+            <li>
+                <strong>{{ percentuais.seguranca_ok }}% OK</strong>
+                <span>{{ percentuais.seguranca_atencao }}% com atencao</span>
+                <div class="meter"><span style="width: {{ percentuais.seguranca_ok }}%"></span></div>
+            </li>
+            {% for item in seguranca_geral %}
+                <li>
+                    <strong>{{ item.get_status_display }}</strong>
+                    <span>{{ item.motivo }}</span>
+                </li>
+            {% empty %}
+                <li>Nenhuma ocorrencia de seguranca registrada.</li>
+            {% endfor %}
+        </ul>
+    </article>
+</section>
+
+<section class="grid two">
+    <article class="panel">
+        <div class="panel-header">
+            <h2>GA geral</h2>
+            <a href="{% url 'operacoes:criar_registro_perfil' perfil_slug 'reunioes' %}">Nova reuniao</a>
+        </div>
+        <div class="meeting-list compact">
+            {% for reuniao in reunioes_recentes %}
+                <article>
+                    <strong>{{ reuniao.tema }}</strong>
+                    <span>{{ reuniao.data|date:"d/m/Y" }}</span>
+                    <small>{{ reuniao.participantes|default:"Sem participantes informados" }}</small>
+                </article>
+            {% empty %}
+                <p>Nenhuma reuniao registrada.</p>
+            {% endfor %}
+        </div>
+        <ul class="list">
+            <li>
+                <strong>{{ percentuais.acoes_concluidas }}% acoes concluidas</strong>
+                <span>{{ percentuais.acoes_pendentes }}% pendentes/andamento</span>
+                <div class="meter"><span style="width: {{ percentuais.acoes_concluidas }}%"></span></div>
+            </li>
+            {% for acao in acoes_recentes %}
+                <li>
+                    <strong>{{ acao.get_status_display }}</strong>
+                    <span>{{ acao.descricao }}</span>
+                </li>
+            {% empty %}
+                <li>Nenhuma acao registrada.</li>
+            {% endfor %}
+        </ul>
+    </article>
+
+    <article class="panel">
+        <div class="panel-header">
+            <h2>Sugestoes de kaizen e kaizens</h2>
+            <a href="{% url 'operacoes:criar_registro_perfil' perfil_slug 'kaizens' %}">Novo kaizen</a>
+        </div>
+        <ul class="list">
+            <li>
+                <strong>{{ percentuais.kaizens_sugestao }}% sugestoes</strong>
+                <span>{{ percentuais.kaizens_implantados }}% implantados</span>
+                <div class="meter"><span style="width: {{ percentuais.kaizens_implantados }}%"></span></div>
+            </li>
+            {% for kaizen in kaizens_sugestoes %}
+                <li>
+                    <strong>Sugestao: {{ kaizen.titulo }}</strong>
+                    <span>{{ kaizen.responsavel|default:"Sem responsavel" }}</span>
+                </li>
+            {% empty %}
+                <li>Nenhuma sugestao de kaizen.</li>
+            {% endfor %}
+            {% for kaizen in kaizens_recentes %}
+                <li>
+                    <strong>{{ kaizen.get_status_display }}: {{ kaizen.titulo }}</strong>
+                    <span>Ganho estimado: R$ {{ kaizen.ganho_estimado }}</span>
+                </li>
+            {% empty %}
+                <li>Nenhum kaizen registrado.</li>
+            {% endfor %}
+        </ul>
+    </article>
+</section>
+{% endblock %}
