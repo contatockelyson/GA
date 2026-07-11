@@ -134,7 +134,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'cim',
         'USER': 'admin',
-        'PASSWORD': 'SUA_SENHA',
+        'PASSWORD': 'gYqHlZ0IdQlVAj85py0vijEJIs3p7vWi',
         'HOST': 'dpg-d8rb58j7uimc73evgji0-a.ohio-postgres.render.com',
         'PORT': '5432',
     }
